@@ -1,0 +1,3 @@
+{
+  "ignore": ["lostfound.db", "*.db", "dist/", "node_modules/"]
+}

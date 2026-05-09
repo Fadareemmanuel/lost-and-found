@@ -4,7 +4,7 @@ import { useNotificationPoll } from "../hooks/useNotificationPoll";
 import Logo from "./Logo";
 
 const navLinkClass = ({ isActive }) =>
-  `rounded-md px-3 py-2 text-sm font-medium transition-colors ${
+  `rounded-md px-2 py-1.5 text-xs sm:text-sm font-medium transition-colors ${
     isActive
       ? "bg-green-pale text-green"
       : "text-dark hover:bg-brand-gray-light/80"
@@ -16,9 +16,9 @@ export default function Navbar() {
 
   return (
     <header className="sticky top-0 z-20 border-b border-brand-gray-light bg-brand-white/95 backdrop-blur-sm">
-      <nav className="mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-4 px-4 py-3 sm:px-6">
+      <nav className="mx-auto flex max-w-6xl items-center justify-between px-4 py-3 sm:px-6">
         <Logo />
-        <div className="flex flex-wrap items-center gap-1 sm:gap-2">
+        <div className="flex items-center gap-0.5 sm:gap-1">
           <NavLink to="/" className={navLinkClass} end>
             Browse
           </NavLink>
@@ -36,7 +36,7 @@ export default function Navbar() {
           )}
           {isAuthed && (
             <NavLink to="/new" className={navLinkClass}>
-              Post item
+              Post
             </NavLink>
           )}
           {user?.role === "admin" && (
@@ -51,26 +51,25 @@ export default function Navbar() {
               </NavLink>
               <NavLink
                 to="/register"
-                className="ml-1 rounded-lg bg-green px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-green-light"
+                className="ml-1 rounded-lg bg-green px-3 py-1.5 text-xs font-semibold text-white shadow-sm transition hover:bg-green-light"
               >
                 Join
               </NavLink>
             </>
-         ) : (
-            <div className="flex items-center gap-2 ml-1">
+          ) : (
+            <div className="flex items-center gap-1 ml-1">
               <button
                 type="button"
                 onClick={logout}
-                className="rounded-lg border border-brand-gray-light bg-white px-4 py-2 text-sm font-medium text-dark-2 shadow-sm transition hover:bg-brand-gray-bg"
+                className="rounded-lg border border-brand-gray-light bg-white px-2 py-1.5 text-xs font-medium text-dark-2 shadow-sm transition hover:bg-brand-gray-bg"
               >
                 Log out
               </button>
-              <div className="flex flex-col items-center cursor-pointer group relative" title={user?.name}>
-                <div className="flex h-9 w-9 items-center justify-center rounded-full bg-green text-sm font-bold text-white shadow-sm">
+              <div className="relative cursor-pointer group" title={user?.name}>
+                <div className="flex h-8 w-8 items-center justify-center rounded-full bg-green text-xs font-bold text-white shadow-sm">
                   {user?.name?.charAt(0)?.toUpperCase() || "?"}
                 </div>
-              
-                <div className="absolute -bottom-8 left-1/2 -translate-x-1/2 hidden group-hover:block bg-dark text-white text-xs rounded-lg px-2 py-1 whitespace-nowrap z-50">
+                <div className="absolute -bottom-8 right-0 hidden group-hover:block bg-dark text-white text-xs rounded-lg px-2 py-1 whitespace-nowrap z-50">
                   {user?.name || "User"}
                 </div>
               </div>

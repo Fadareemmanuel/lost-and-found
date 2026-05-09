@@ -15,7 +15,7 @@ function getApiBase() {
       .trim();
     return `${origin}/api`;
   }
-  return "https://lasu-lost-and-found-api.onrender.com/api".
+ return "https://lasu-lost-and-found-api.onrender.com/api";
 }
 
 const API_BASE = getApiBase();

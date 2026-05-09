@@ -1,8 +1,12 @@
 {
-  "rewrites": [
+  "routes": [
     {
-      "source": "/api/:path*",
-      "destination": "https://lasu-lost-and-found-api.onrender.com/api/:path*"
+      "src": "/api/(.*)",
+      "dest": "https://lasu-lost-and-found-api.onrender.com/api/$1"
+    },
+    {
+      "src": "/(.*)",
+      "dest": "/index.html"
     }
   ]
 }

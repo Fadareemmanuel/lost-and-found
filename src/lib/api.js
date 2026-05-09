@@ -15,7 +15,7 @@ function getApiBase() {
       .trim();
     return `${origin}/api`;
   }
-  return "/api";
+  return "https://lasu-lost-and-found-api.onrender.com/api".
 }
 
 const API_BASE = getApiBase();
@@ -50,8 +50,14 @@ export async function apiFetch(path, { method = "GET", body, token } = {}) {
       ...(body ? { body: JSON.stringify(body) } : {}),
     });
   } catch {
-   throw new Error("Network error. Please try again.");
+    throw new Error("Network error. Please try again.");
   }
+
+  if (res.status === 401) {
+    window.location.href = "/login?session=expired";
+    throw new Error("Session expired. Please log in again.");
+  }
+
   const data = await res.json().catch(() => ({}));
   if (!res.ok) throw new Error(formatError(data));
   return data;

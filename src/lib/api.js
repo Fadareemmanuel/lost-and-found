@@ -61,3 +61,11 @@ export async function apiFetch(path, { method = "GET", body, token } = {}) {
   if (!res.ok) throw new Error(formatError(data));
   return data;
 }
+if (res.status === 401) {
+    const token = localStorage.getItem("token");
+    if (token && !window.location.pathname.includes("/login")) {
+      localStorage.removeItem("token");
+      window.location.href = "/login?session=expired";
+    }
+    throw new Error("Session expired. Please log in again.");
+  }

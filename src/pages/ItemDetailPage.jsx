@@ -17,7 +17,8 @@ export default function ItemDetailPage() {
   const { token, isAuthed, user } = useAuth();
   const [item, setItem] = useState(null);
   const [similar, setSimilar] = useState([]);
-  const [claimsOnItem, setClaimsOnItem] = useState([]);
+  const [claimsOnItem, setClaimsOnItem] = useState([]); // owner's view: all claims on this item
+  const [myClaim, setMyClaim] = useState(null);          // claimant's view: my own claim
   const [loadError, setLoadError] = useState("");
   const [responseMsg, setResponseMsg] = useState("");
   const [info, setInfo] = useState("");
@@ -33,21 +34,35 @@ export default function ItemDetailPage() {
     try {
       const data = await apiFetch(`/items/${id}`);
       setItem(data);
+
       try {
         const sim = await apiFetch(`/items/${id}/similar`);
         setSimilar(sim.suggestedMatches ?? []);
       } catch {
         setSimilar([]);
       }
-      if (token && data.posted_by != null && sameUser(user?.id, data.posted_by)) {
-        try {
-          const cl = await apiFetch(`/claims/item/${id}`, { token });
-          setClaimsOnItem(cl);
-        } catch {
-          setClaimsOnItem([]);
+
+      if (token && data.posted_by != null) {
+        if (sameUser(user?.id, data.posted_by)) {
+          // Owner: fetch all claims on the item
+          try {
+            const cl = await apiFetch(`/claims/item/${id}`, { token });
+            setClaimsOnItem(cl);
+          } catch {
+            setClaimsOnItem([]);
+          }
+        } else {
+          // Claimant: fetch only my own outgoing claims and find the one for this item
+          try {
+            const outgoing = await apiFetch(`/claims/outgoing`, { token });
+            const mine = outgoing.find(
+              (c) => Number(c.item_id) === Number(id) && c.status === "approved"
+            ) ?? null;
+            setMyClaim(mine);
+          } catch {
+            setMyClaim(null);
+          }
         }
-      } else {
-        setClaimsOnItem([]);
       }
     } catch (err) {
       setLoadError(err.message);
@@ -118,10 +133,10 @@ export default function ItemDetailPage() {
     return <p className="py-16 text-center text-brand-gray">Loading…</p>;
   }
 
-  const isOpen = item.status === "open";
+ const isOpen = item.status === "open";
+const pendingClaims = claimsOnItem.filter((c) => c.status === "pending");
+const approvedClaims = claimsOnItem.filter((c) => c.status === "approved");
 
-  const pendingClaims = claimsOnItem.filter((c) => c.status === "pending");
-const myClaim = claimsOnItem?.find((c) => c.claimant_id === user?.id && c.status === "approved");
   const claimTypeLabel = (t) =>
     t === "found_lost" ? "Says they found your item" : "Says this found item is theirs";
 
@@ -153,9 +168,7 @@ const myClaim = claimsOnItem?.find((c) => c.claimant_id === user?.id && c.status
           <dl className="mt-6 grid gap-3 text-sm sm:grid-cols-2">
             <div>
               <dt className="font-semibold text-brand-gray">Category</dt>
-              <dd className="text-dark capitalize">
-                {item.category?.replace(/_/g, " ") || "—"}
-              </dd>
+              <dd className="text-dark capitalize">{item.category?.replace(/_/g, " ") || "—"}</dd>
             </div>
             <div>
               <dt className="font-semibold text-brand-gray">Colour</dt>
@@ -190,6 +203,7 @@ const myClaim = claimsOnItem?.find((c) => c.claimant_id === user?.id && c.status
             </div>
           )}
 
+          {/* Owner: review pending claims */}
           {isOwner && isOpen && pendingClaims.length > 0 && (
             <div className="mt-8 rounded-2xl border border-gold/40 bg-gold-pale/50 p-5">
               <h2 className="text-lg font-semibold text-dark [font-family:var(--font-syne)]">
@@ -200,10 +214,7 @@ const myClaim = claimsOnItem?.find((c) => c.claimant_id === user?.id && c.status
               </p>
               <ul className="mt-4 space-y-4">
                 {pendingClaims.map((c) => (
-                  <li
-                    key={c.id}
-                    className="rounded-xl border border-brand-gray-light bg-white p-4 shadow-sm"
-                  >
+                  <li key={c.id} className="rounded-xl border border-brand-gray-light bg-white p-4 shadow-sm">
                     <p className="text-xs font-semibold uppercase text-brand-gray">
                       {claimTypeLabel(c.claim_type)}
                     </p>
@@ -232,13 +243,16 @@ const myClaim = claimsOnItem?.find((c) => c.claimant_id === user?.id && c.status
               </ul>
             </div>
           )}
-       {isAuthed && !isOwner && myClaim?.status === "approved" && (
-  <ChatBox claimId={myClaim.id} />
-)}
 
-{isOwner && pendingClaims?.filter(c => c.status === "approved").map(c => (
-  <ChatBox key={c.id} claimId={c.id} />
-))}
+          {/* FIX: Owner chat — use approvedClaims, not pendingClaims filtered for approved */}
+          {isOwner && approvedClaims.map((c) => (
+           <ChatBox key={c.id} claimId={c.id} onEnd={() => load()} />
+          ))}
+
+          {/* FIX: Claimant chat — use myClaim fetched from /claims/outgoing */}
+          {isAuthed && !isOwner && myClaim && (
+            <ChatBox claimId={myClaim.id} onEnd={() => load()} />
+          )}
 
           <div className="mt-8 border-t border-brand-gray-light pt-8">
             {!isAuthed && (
@@ -260,11 +274,11 @@ const myClaim = claimsOnItem?.find((c) => c.claimant_id === user?.id && c.status
               </p>
             )}
 
-            {isAuthed && !isOwner && !isOpen && (
+            {isAuthed && !isOwner && !isOpen && myClaim && myClaim.status !== "approved" && (
               <p className="text-sm text-brand-gray">This listing is closed.</p>
             )}
 
-            {isAuthed && !isOwner && isOpen && item.type === "found" && (
+            {isAuthed && !isOwner && isOpen && item.type === "found" && !myClaim && (
               <div>
                 <h2 className="text-lg font-semibold text-dark [font-family:var(--font-syne)]">
                   This is mine
@@ -293,7 +307,7 @@ const myClaim = claimsOnItem?.find((c) => c.claimant_id === user?.id && c.status
               </div>
             )}
 
-            {isAuthed && !isOwner && isOpen && item.type === "lost" && (
+            {isAuthed && !isOwner && isOpen && item.type === "lost" && !myClaim && (
               <div>
                 <h2 className="text-lg font-semibold text-dark [font-family:var(--font-syne)]">
                   I found this item

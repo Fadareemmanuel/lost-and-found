@@ -183,4 +183,30 @@ router.patch("/:id", requireAuth, requireClaimReviewer, (req, res) => {
   res.json({ ok: true });
 });
 
+router.post("/:id/resolve", requireAuth, (req, res) => {
+  const claim = db.prepare("SELECT * FROM claims WHERE id = ?").get(req.params.id);
+  if (!claim) return res.status(404).json({ error: "Claim not found" });
+
+  const item = db.prepare("SELECT * FROM items WHERE id = ?").get(claim.item_id);
+  if (!item) return res.status(404).json({ error: "Item not found" });
+
+  if (claim.claimant_id !== req.user.id && item.posted_by !== req.user.id) {
+    return res.status(403).json({ error: "Not allowed" });
+  }
+
+  db.prepare("UPDATE claims SET status = ? WHERE id = ?").run("resolved", claim.id);
+  db.prepare("UPDATE items SET status = ? WHERE id = ?").run("resolved", item.id);
+
+  createNotification({
+    userId: claim.claimant_id === req.user.id ? item.posted_by : claim.claimant_id,
+    type: "claim_resolved",
+    title: "Chat ended",
+    body: `The chat for "${item.title}" has been ended and the listing is now resolved.`,
+    itemId: item.id,
+    claimId: claim.id,
+  });
+
+  res.json({ ok: true });
+});
+
 export default router;

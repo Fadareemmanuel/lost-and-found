@@ -49,7 +49,11 @@ export async function apiFetch(path, { method = "GET", body, token } = {}) {
   }
 
   if (res.status === 401) {
-    window.location.href = "/login?session=expired";
+    const token = localStorage.getItem("token");
+    if (token) {
+      localStorage.removeItem("token");
+      window.location.href = "/login?session=expired";
+    }
     throw new Error("Session expired. Please log in again.");
   }
 

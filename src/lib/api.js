@@ -48,14 +48,15 @@ export async function apiFetch(path, { method = "GET", body, token } = {}) {
     throw new Error("Network error. Please try again.");
   }
 
- if (res.status === 401) {
-  const token = localStorage.getItem("token");
-  if (token) {
-    localStorage.removeItem("token");
-    window.location.href = "/login?session=expired";
+if (res.status === 401) {
+    const token = localStorage.getItem("token");
+    const isAuthRoute = path.includes("/auth/");
+    if (token && !isAuthRoute) {
+      localStorage.removeItem("token");
+      window.location.href = "/login?session=expired";
+    }
+    throw new Error("Session expired. Please log in again.");
   }
-  throw new Error("Session expired. Please log in again.");
-}
 
   const data = await res.json().catch(() => ({}));
   if (!res.ok) throw new Error(formatError(data));

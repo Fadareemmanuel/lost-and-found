@@ -55,7 +55,7 @@ export default function ChatBox({ claimId, onEnd }) {
 
   useEffect(() => {
     loadMessages();
-    const interval = setInterval(loadMessages, 3000);
+    const interval = setInterval(loadMessages, 6000);
     return () => clearInterval(interval);
   }, [claimId]);
 

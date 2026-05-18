@@ -10,16 +10,28 @@ const statusStyles = {
   returned: "text-brand-gray",
 };
 
+function getImageUrl(imageUrl) {
+  if (!imageUrl) return null;
+  if (imageUrl.startsWith("http")) return imageUrl;
+  const apiBase = import.meta.env.VITE_API_BASE
+    ? import.meta.env.VITE_API_BASE.replace(/\/$/, "").trim()
+    : import.meta.env.DEV
+      ? "http://localhost:4000/api"
+      : "https://lasu-lost-and-found-api.onrender.com/api";
+  return `${apiBase.replace(/\/api$/, "")}${imageUrl}`;
+}
+
 export default function ItemCard({ item }) {
   const typeClass = typeStyles[item.type] ?? "bg-brand-gray-light text-brand-gray";
   const statusClass = statusStyles[item.status] ?? "text-brand-gray";
+  const imgSrc = getImageUrl(item.image_url);
 
   return (
     <article className="group flex animate-fade-up flex-col overflow-hidden rounded-2xl border border-brand-gray-light bg-white shadow-sm transition-all duration-300 hover:border-green-mid/60 hover:shadow-xl hover:scale-[1.03] cursor-pointer">
-        {item.image_url ? (
+        {imgSrc ? (
         <div className="aspect-[16/10] w-full overflow-hidden bg-brand-gray-bg">
           <img
-            src={item.image_url}
+            src={imgSrc}
             alt=""
             className="h-full w-full object-cover transition duration-300 group-hover:scale-[1.02]"
           />

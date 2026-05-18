@@ -8,6 +8,7 @@ import notificationRoutes from "./routes/notifications.js";
 import messageRoutes from "./routes/messages.js";
 import { initDb } from "./db.js";
 import { upload } from "./lib/upload.js";
+import { requireAuth } from "./middleware/auth.js";
 
 dotenv.config();
 initDb();

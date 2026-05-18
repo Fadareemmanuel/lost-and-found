@@ -212,20 +212,29 @@ export default function NewItemPage() {
                     const formData = new FormData();
                     formData.append("image", file);
                     try {
-                      const res = await fetch("http://localhost:4000/api/upload", {
+                      const apiBase = import.meta.env.VITE_API_BASE
+                        ? import.meta.env.VITE_API_BASE.replace(/\/$/, "").trim()
+                        : import.meta.env.DEV
+                          ? "http://localhost:4000/api"
+                          : "https://lasu-lost-and-found-api.onrender.com/api";
+                      const res = await fetch(`${apiBase}/upload`, {
                         method: "POST",
                         headers: { Authorization: `Bearer ${token}` },
                         body: formData,
                       });
                       const data = await res.json();
-                      setForm({ ...form, image_url: `http://localhost:4000${data.url}` });
+                      setForm({ ...form, image_url: data.url });
                     } catch {
                       setError("Image upload failed. Try again.");
                     }
                   }}
                 />
                 {form.image_url && (
-                  <img src={form.image_url} alt="Preview" className="h-32 w-full rounded-xl object-cover border border-brand-gray-light" />
+                  <img 
+                    src={`${import.meta.env.DEV ? "http://localhost:4000" : "https://lasu-lost-and-found-api.onrender.com"}${form.image_url}`} 
+                    alt="Preview" 
+                    className="h-32 w-full rounded-xl object-cover border border-brand-gray-light" 
+                  />
                 )}
               </div>
             </div>

@@ -12,6 +12,17 @@ function sameUser(a, b) {
   return Number(a) === Number(b);
 }
 
+function getImageUrl(imageUrl) {
+  if (!imageUrl) return null;
+  if (imageUrl.startsWith("http")) return imageUrl;
+  const apiBase = import.meta.env.VITE_API_BASE
+    ? import.meta.env.VITE_API_BASE.replace(/\/$/, "").trim()
+    : import.meta.env.DEV
+      ? "http://localhost:4000/api"
+      : "https://lasu-lost-and-found-api.onrender.com/api";
+  return `${apiBase.replace(/\/api$/, "")}${imageUrl}`;
+}
+
 export default function ItemDetailPage() {
   const { id } = useParams();
   const { token, isAuthed, user } = useAuth();
@@ -136,6 +147,7 @@ export default function ItemDetailPage() {
  const isOpen = item.status === "open";
 const pendingClaims = claimsOnItem.filter((c) => c.status === "pending");
 const approvedClaims = claimsOnItem.filter((c) => c.status === "approved");
+const imgSrc = getImageUrl(item.image_url);
 
   const claimTypeLabel = (t) =>
     t === "found_lost" ? "Says they found your item" : "Says this found item is theirs";
@@ -147,9 +159,9 @@ const approvedClaims = claimsOnItem.filter((c) => c.status === "approved");
       </Link>
 
       <article className="mt-6 overflow-hidden rounded-2xl border border-brand-gray-light bg-white shadow-sm">
-        {item.image_url ? (
+        {imgSrc ? (
           <div className="aspect-[21/9] w-full bg-brand-gray-bg sm:aspect-[2/1]">
-            <img src={item.image_url} alt="" className="h-full w-full object-cover" />
+            <img src={imgSrc} alt="" className="h-full w-full object-cover" />
           </div>
         ) : null}
         <div className="p-6 sm:p-8">

@@ -32,8 +32,7 @@ export default function MatchSuggestions({
                   {item.type}
                 </span>
                 <span className="text-xs font-medium text-brand-gray">
-                  Match score: <strong className="text-dark">{score}</strong>
-                  /100
+                  Match score: <strong className="text-dark">{Math.round(score)}%</strong>
                 </span>
               </div>
               <p className="mt-1 font-semibold text-dark">{item.title}</p>
@@ -47,7 +46,7 @@ export default function MatchSuggestions({
                 <p className="mt-1 text-[11px] text-brand-gray">
                   Category {Math.round(breakdown.category)} · Colour {Math.round(breakdown.color)} ·
                   Size {Math.round(breakdown.size)} · Title {Math.round(breakdown.title)} · Desc{" "}
-                  {Math.round(breakdown.description)}
+                  {Math.round(breakdown.description)} · Location {Math.round(breakdown.location)}
                 </p>
               )}
             </div>

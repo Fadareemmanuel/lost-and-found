@@ -6,11 +6,12 @@ import { CATEGORY_SYNONYMS } from "./itemConstants.js";
 
 /** Max points per dimension (sums to 100). */
 export const WEIGHTS = {
-  category: 28,
-  color: 27,
-  size: 15,
+  category: 25,
+  color: 24,
+  size: 13,
   title: 15,
   description: 15,
+  location: 8,
 };
 
 function tokenizeForDice(text) {
@@ -115,6 +116,45 @@ function sizeScore(a, b) {
 }
 
 /**
+ * Calculate distance in kilometers between two lat/lng coordinates.
+ * Using Haversine formula for great-circle distance.
+ */
+function haversineDistance(lat1, lng1, lat2, lng2) {
+  const R = 6371; // Earth radius in km
+  const dLat = ((lat2 - lat1) * Math.PI) / 180;
+  const dLng = ((lng2 - lng1) * Math.PI) / 180;
+  const a =
+    Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+    Math.cos((lat1 * Math.PI) / 180) * Math.cos((lat2 * Math.PI) / 180) * Math.sin(dLng / 2) * Math.sin(dLng / 2);
+  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+  return R * c;
+}
+
+function locationScore(a, b) {
+  const hasLocA = a?.latitude != null && a?.longitude != null;
+  const hasLocB = b?.latitude != null && b?.longitude != null;
+
+  // Both have locations: score based on proximity
+  if (hasLocA && hasLocB) {
+    const distance = haversineDistance(a.latitude, a.longitude, b.latitude, b.longitude);
+    // On a campus, typically items lost/found within 500m are good matches
+    // Closer = higher score
+    if (distance < 0.05) return WEIGHTS.location; // < 50m = perfect location match
+    if (distance < 0.1) return WEIGHTS.location * 0.95; // < 100m = excellent
+    if (distance < 0.2) return WEIGHTS.location * 0.85; // < 200m = very good
+    if (distance < 0.5) return WEIGHTS.location * 0.7; // < 500m = good
+    if (distance < 1.0) return WEIGHTS.location * 0.5; // < 1km = moderate
+    return WEIGHTS.location * 0.25; // > 1km = weak location match
+  }
+
+  // Both missing location: give moderate score (can't judge location)
+  if (!hasLocA && !hasLocB) return WEIGHTS.location * 0.6;
+
+  // Only one has location: lower score (incomplete location data)
+  return WEIGHTS.location * 0.3;
+}
+
+/**
  * Score how well `candidate` matches `subject` (lost vs found pairing).
  * @returns {{ total: number, breakdown: Record<string, number>, components: Record<string, number> }}
  */
@@ -124,14 +164,16 @@ export function scorePair(subject, candidate) {
   const siz = sizeScore(subject, candidate);
   const tit = diceSimilarity(subject.title || "", candidate.title || "") * WEIGHTS.title;
   const des = diceSimilarity(subject.description || "", candidate.description || "") * WEIGHTS.description;
+  const loc = locationScore(subject, candidate);
 
-  const total = Math.round((cat + col + siz + tit + des) * 100) / 100;
+  const total = Math.round((cat + col + siz + tit + des + loc) * 100) / 100;
   const breakdown = {
     category: Math.round(cat * 100) / 100,
     color: Math.round(col * 100) / 100,
     size: Math.round(siz * 100) / 100,
     title: Math.round(tit * 100) / 100,
     description: Math.round(des * 100) / 100,
+    location: Math.round(loc * 100) / 100,
   };
 
   return {
@@ -143,6 +185,7 @@ export function scorePair(subject, candidate) {
       sizeW: WEIGHTS.size,
       titleW: WEIGHTS.title,
       descriptionW: WEIGHTS.description,
+      locationW: WEIGHTS.location,
     },
   };
 }

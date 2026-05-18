@@ -126,15 +126,19 @@ export default function FoundItemPage() {
                   const formData = new FormData();
                   formData.append("image", file);
                   try {
-                    const uploadRes = await fetch(`${import.meta.env.VITE_API_BASE?.replace("/api", "")}/api/upload`, {
+                    const base = import.meta.env.VITE_API_BASE?.replace(/\/api$/, "") ?? "";
+                    const uploadRes = await fetch(`${base}/api/upload`, {
                       method: "POST",
                       headers: { Authorization: `Bearer ${token}` },
                       body: formData,
                     });
                     const data = await uploadRes.json();
-setForm((prev) => ({ ...prev, image_url: data.url }));
-                  } catch {
-                    setError("Image upload failed. Try again.");
+                    console.log("upload response:", data);
+                    const fullUrl = data.url?.startsWith("http") ? data.url : `${base}${data.url}`;
+                    if (!fullUrl) throw new Error("No URL returned");
+                    setForm((prev) => ({ ...prev, image_url: fullUrl }));
+                  } catch (err) {
+                    setError("Image upload failed: " + err.message);
                   }
                 }}
               />

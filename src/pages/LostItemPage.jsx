@@ -132,7 +132,9 @@ export default function LostItemPage() {
                       body: formData,
                     });
                     const data = await uploadRes.json();
-                    setForm({ ...form, image_url: data.url });
+const base = import.meta.env.VITE_API_BASE?.replace(/\/api$/, "") ?? "";
+const fullUrl = data.url.startsWith("http") ? data.url : `${base}${data.url}`;
+setForm((prev) => ({ ...prev, image_url: fullUrl }));
                   } catch {
                     setError("Image upload failed. Try again.");
                   }

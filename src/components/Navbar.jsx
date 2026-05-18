@@ -76,6 +76,7 @@ export default function Navbar() {
                 </div>
                 <div className="absolute -bottom-8 right-0 hidden group-hover:block bg-dark text-white text-xs rounded-lg px-2 py-1 whitespace-nowrap z-50">
                   {user?.name || "User"}
+                  <div className="flex items-center gap-0.5 sm:gap-1 overflow-x-auto">
                 </div>
               </div>
             </div>

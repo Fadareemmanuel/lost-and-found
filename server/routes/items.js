@@ -35,6 +35,14 @@ const createSchema = z.object({
   location: z.string().optional(),
   date: z.string().optional(),
   image_url: optionalUrl,
+  latitude: z.preprocess(
+  (v) => (v == null || v === "" ? undefined : Number(v)),
+  z.number().optional()
+),
+longitude: z.preprocess(
+  (v) => (v == null || v === "" ? undefined : Number(v)),
+  z.number().optional()
+),
 });
 
 router.get("/", (req, res) => {
@@ -106,24 +114,26 @@ router.post("/", requireAuth, (req, res) => {
   );
 
   const result = db
-    .prepare(
-      `INSERT INTO items (
-        type, title, description, category, color, size_bucket,
-        location, date, image_url, posted_by
-      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
-    )
-    .run(
-      data.type,
-      data.title,
-      data.description,
-      merged.category,
-      merged.color,
-      merged.size_bucket,
-      data.location ?? null,
-      data.date ?? null,
-      data.image_url ?? null,
-      req.user.id
-    );
+  .prepare(
+    `INSERT INTO items (
+      type, title, description, category, color, size_bucket,
+      location, date, image_url, posted_by, latitude, longitude
+    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
+  )
+  .run(
+    data.type,
+    data.title,
+    data.description,
+    merged.category,
+    merged.color,
+    merged.size_bucket,
+    data.location ?? null,
+    data.date ?? null,
+    data.image_url ?? null,
+    req.user.id,
+    data.latitude ?? null,
+    data.longitude ?? null
+  );
 
   const newId = Number(result.lastInsertRowid);
   const row = db.prepare("SELECT * FROM items WHERE id = ?").get(newId);

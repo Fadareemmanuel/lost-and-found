@@ -1,3 +1,5 @@
+import LostItemPage from "./pages/LostItemPage";
+import FoundItemPage from "./pages/FoundItemPage";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import Navbar from "./components/Navbar";
 import ProtectedRoute from "./components/ProtectedRoute";
@@ -22,14 +24,8 @@ export default function App() {
               <Route path="/items/:id" element={<ItemDetailPage />} />
               <Route path="/login" element={<LoginPage />} />
               <Route path="/register" element={<RegisterPage />} />
-              <Route
-                path="/new"
-                element={
-                  <ProtectedRoute>
-                    <NewItemPage />
-                  </ProtectedRoute>
-                }
-              />
+              <Route path="/lost/new" element={<ProtectedRoute><LostItemPage /></ProtectedRoute>} />
+<Route path="/found/new" element={<ProtectedRoute><FoundItemPage /></ProtectedRoute>} />
               <Route
                 path="/notifications"
                 element={

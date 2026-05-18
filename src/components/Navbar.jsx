@@ -34,11 +34,16 @@ export default function Navbar() {
               </span>
             </NavLink>
           )}
-          {isAuthed && (
-            <NavLink to="/new" className={navLinkClass}>
-              Post
-            </NavLink>
-          )}
+         {isAuthed && (
+  <>
+    <NavLink to="/lost/new" className={navLinkClass}>
+      Lost
+    </NavLink>
+    <NavLink to="/found/new" className={navLinkClass}>
+      Found
+    </NavLink>
+  </>
+)}
           {user?.role === "admin" && (
             <NavLink to="/admin/claims" className={navLinkClass}>
               Admin

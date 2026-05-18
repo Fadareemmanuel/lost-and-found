@@ -20,6 +20,15 @@ function migrateItems() {
   }
   if (!names.has("size_bucket")) {
     db.exec("ALTER TABLE items ADD COLUMN size_bucket TEXT");
+    if (!names.has("latitude")) {
+  db.exec("ALTER TABLE items ADD COLUMN latitude REAL");
+}
+if (!names.has("longitude")) {
+  db.exec("ALTER TABLE items ADD COLUMN longitude REAL");
+}
+if (!names.has("location_label")) {
+  db.exec("ALTER TABLE items ADD COLUMN location_label TEXT");
+}
   }
 }
 
